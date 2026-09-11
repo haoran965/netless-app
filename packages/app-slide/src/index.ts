@@ -95,6 +95,11 @@ export interface ILogger {
   warn?(msg: string): void;
 }
 
+type SlideWithPptMediaRecovery = Slide & {
+  onPptMediaPermissionRequest?: (callback: () => void) => () => void;
+  playPptMedia?: () => void;
+};
+
 export interface AppResult {
   viewer: () => SlideDocsViewer | null;
   controller: () => SlideController | null | undefined;
@@ -111,6 +116,8 @@ export interface AppResult {
   scaleView: (to: number) => void;
   getViewScale: () => number | undefined;
   translateView: (offsetX: number, offsetY: number) => void;
+  onPptMediaPermissionRequest: (callback: () => void) => () => void;
+  playPptMedia: () => void;
 }
 
 const SlideApp: NetlessApp<Attributes, MagixEvents, AppOptions, AppResult> = {
@@ -260,6 +267,14 @@ const SlideApp: NetlessApp<Attributes, MagixEvents, AppOptions, AppResult> = {
     docsViewer.mount();
 
     return {
+      onPptMediaPermissionRequest: callback => {
+        const slide = docsViewer?.slideController?.slide as SlideWithPptMediaRecovery | undefined;
+        return slide?.onPptMediaPermissionRequest?.(callback) ?? (() => undefined);
+      },
+      playPptMedia: () => {
+        const slide = docsViewer?.slideController?.slide as SlideWithPptMediaRecovery | undefined;
+        slide?.playPptMedia?.();
+      },
       onScaleChanged: (cb: (scale: number) => void) => {
         if (!docsViewer) {
           return () => void 0;
