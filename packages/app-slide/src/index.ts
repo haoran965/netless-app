@@ -95,11 +95,6 @@ export interface ILogger {
   warn?(msg: string): void;
 }
 
-type SlideWithPptMediaRecovery = Slide & {
-  onPptMediaPermissionRequest?: (callback: () => void) => () => void;
-  playPptMedia?: () => void;
-};
-
 export interface AppResult {
   viewer: () => SlideDocsViewer | null;
   controller: () => SlideController | null | undefined;
@@ -268,12 +263,11 @@ const SlideApp: NetlessApp<Attributes, MagixEvents, AppOptions, AppResult> = {
 
     return {
       onPptMediaPermissionRequest: callback => {
-        const slide = docsViewer?.slideController?.slide as SlideWithPptMediaRecovery | undefined;
-        return slide?.onPptMediaPermissionRequest?.(callback) ?? (() => undefined);
+        const slide = docsViewer?.slideController?.slide;
+        return slide?.onPptMediaPermissionRequest(callback) ?? (() => undefined);
       },
       playPptMedia: () => {
-        const slide = docsViewer?.slideController?.slide as SlideWithPptMediaRecovery | undefined;
-        slide?.playPptMedia?.();
+        docsViewer?.slideController?.slide.playPptMedia();
       },
       onScaleChanged: (cb: (scale: number) => void) => {
         if (!docsViewer) {
